@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { BsCart4, BsFillBagCheckFill } from 'react-icons/bs';
 import { AiFillCloseCircle, AiFillPlusCircle, AiFillMinusCircle, AiOutlineClear } from 'react-icons/ai';
+import { MdAccountCircle } from 'react-icons/md';
 
 const Navbar = ({ cart, addToCart, removeFromCart, clearCart, subTotal }) => {
     const toggleCart = () => {
@@ -32,8 +33,9 @@ const Navbar = ({ cart, addToCart, removeFromCart, clearCart, subTotal }) => {
                     <Link href={`/mugs`}><li className="cursor-pointer">Mugs</li></Link>
                 </ul>
             </div>
-            <div onClick={toggleCart} className="cursor-pointer cart absolute right-0 top-[1.35rem] mx-5">
-                <BsCart4 className='text-2xl md:text-3xl' />
+            <div className="cursor-pointer cart absolute right-0 top-[1.35rem] mx-5 flex space-x-2 md:space-x-6">
+                <Link href={'/login'}><MdAccountCircle className='text-2xl md:text-3xl mt-[0.1rem] md:mt-[0.2rem]' /></Link>
+                <BsCart4 onClick={toggleCart} className='text-2xl md:text-3xl' />
             </div>
 
             <div ref={ref} className={`sideCart  h-[100vh] w-80 absolute top-0 right-0 bg-pink-100 p-10 transform transition-transform ${Object.keys(cart).length !== 0 ? 'translate-x-0' : 'translate-x-full'}`}>
