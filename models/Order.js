@@ -13,8 +13,10 @@ const OrderSchema = new mongoose.Schema({
     status: { type: String, default: 'Pending', required: true }, // Status of the order (default is Pending)
 }, { timestamps: true }) // Adds timestamps for when the order is created and modified
 
+
+export default mongoose.models.Order || mongoose.model("Order", OrderSchema)
 // Clear the models in Mongoose (in case any were previously defined)
-mongoose.models = {}
+// mongoose.models = {}
 
 // Export the schema as a Mongoose model called "Order"
-export default mongoose.model("Order", OrderSchema)
+// export default mongoose.model("Order", OrderSchema)

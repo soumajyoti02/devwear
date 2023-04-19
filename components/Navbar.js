@@ -27,10 +27,10 @@ const Navbar = ({ cart, addToCart, removeFromCart, clearCart, subTotal }) => {
             </div>
             <div className="nav">
                 <ul className="flex items-center space-x-4 font-bold md:text-lg">
-                    <Link href={`/tshirts`}><li className="cursor-pointer">Tshirts</li></Link>
-                    <Link href={`/hoodies`}><li className="cursor-pointer">Hoodies</li></Link>
-                    <Link href={`/stickers`}><li className="cursor-pointer">Stickers</li></Link>
-                    <Link href={`/mugs`}><li className="cursor-pointer">Mugs</li></Link>
+                    <Link href={`/tshirts`}><li className="cursor-pointer hover:text-pink-500">Tshirts</li></Link>
+                    <Link href={`/hoodies`}><li className="cursor-pointer hover:text-pink-500">Hoodies</li></Link>
+                    <Link href={`/stickers`}><li className="cursor-pointer hover:text-pink-500">Stickers</li></Link>
+                    <Link href={`/mugs`}><li className="cursor-pointer hover:text-pink-500">Mugs</li></Link>
                 </ul>
             </div>
             <div className="cursor-pointer cart absolute right-0 top-[1.35rem] mx-5 flex space-x-2 md:space-x-6">
@@ -38,7 +38,7 @@ const Navbar = ({ cart, addToCart, removeFromCart, clearCart, subTotal }) => {
                 <BsCart4 onClick={toggleCart} className='text-2xl md:text-3xl' />
             </div>
 
-            <div ref={ref} className={`sideCart  h-[100vh] w-80 absolute top-0 right-0 bg-pink-100 p-10 transform transition-transform ${Object.keys(cart).length !== 0 ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div ref={ref} className={`sideCart  h-[100vh] w-80 absolute overflow-y-scroll top-0 right-0 bg-pink-100 p-10 transform transition-transform ${Object.keys(cart).length !== 0 ? 'translate-x-0' : 'translate-x-full'}`}>
                 <h2 className="font-bold text-xl">Shopping Cart</h2>
                 <span onClick={toggleCart} className="cursor-pointer absolute top-5 right-2  text-2xl text-pink-600">
                     <AiFillCloseCircle />
@@ -51,7 +51,7 @@ const Navbar = ({ cart, addToCart, removeFromCart, clearCart, subTotal }) => {
                     {Object.keys(cart).map((k) => {
                         return <li key={k} className="">
                             <div className='item flex my-5'>
-                                <div className="w-2/3 font-semibold">{cart[k].name}</div>
+                                <div className="w-2/3 font-semibold">{cart[k].name} ({cart[k].size}/{cart[k].variant})</div>
                                 <div className="flex font-semibold justify-center items-center w-1/3 text-lg">
                                     {/* Here k is slug */}
 
