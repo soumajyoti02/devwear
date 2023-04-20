@@ -1,8 +1,15 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Router, useRouter } from 'next/router';
 
 const Forget = () => {
+    const router = useRouter()
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            router.push('/')
+        }
+    }, [])
     return (
         <div>
             <div className="flex min-h-full items-center justify-center px-4 py-12 sm:px-6 lg:px-8">

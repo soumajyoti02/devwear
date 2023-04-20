@@ -79,7 +79,7 @@ const Post = ({ buyNow, addToCart, product, variants }) => {
     const [size, setSize] = useState(product.size);
 
     const refreshVariant = (newsize, newcolor) => {
-        console.log(newsize, newcolor)
+        // console.log(newsize, newcolor)
         let url = `http://localhost:3000/product/${variants[newcolor][newsize]['slug']}`
         window.location = url
     }

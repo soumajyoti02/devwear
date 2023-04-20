@@ -61,7 +61,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             </div>
 
             <h2 className="text-xl font-semibold">2. Review Cart Items</h2>
-            <div className="sideCart bg-pink-100 p-5 my-4 ">
+            <div className="sideCart bg-pink-100 p-5 my-4 pl-8 md:pl-14">
 
                 <ol className="list-decimal font-semibold">
                     {/* Object.keys(cart) returns an array of all the keys in the cart object. */}

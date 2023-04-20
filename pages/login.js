@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ToastContainer, toast } from 'react-toastify';
@@ -21,6 +21,12 @@ const Login = () => {
 
     }
 
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            router.push('/')
+        }
+    }, [])
+
     const handleSubmit = async (event) => {
         event.preventDefault()
         const data = { email, password }
@@ -38,6 +44,7 @@ const Login = () => {
         setEmail('')
         setPassword('')
         if (response.success) {
+            localStorage.setItem('token', response.token)
             toast.success('You are succesfully logged in!', {
                 position: "top-left",
                 autoClose: 1000,
