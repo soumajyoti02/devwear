@@ -1,12 +1,101 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BsFillBagCheckFill } from 'react-icons/bs';
 import { AiFillPlusCircle, AiFillMinusCircle, AiOutlineClear } from 'react-icons/ai';
+import Head from 'next/head';
+import Script from 'next/script';
+import $ from 'jquery';
+import { useRouter } from 'next/router';
+
+// import Razorpay from 'razorpay';
 
 const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
+
+    const [orderId, setOrderId] = useState(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        const createOrderId = async () => {
+            try {
+                const response = await fetch('/create/orderId', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ amount: '1' }),
+                });
+
+                const { orderId } = await response.json();
+                setOrderId(orderId);
+                console.log(orderId);
+                $('button').show();
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        createOrderId();
+    }, []);
+
+    const handlePayment = (e) => {
+        e.preventDefault();
+
+        const options = {
+            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+            amount: subTotal * 100,
+            currency: 'INR',
+            name: 'Devwear',
+            description: 'Test Transaction',
+            image: `/logo.png`,
+            order_id: orderId,
+            handler: function (response) {
+                alert(response.razorpay_payment_id);
+                alert(response.razorpay_order_id);
+                alert(response.razorpay_signature);
+
+                const settings = {
+                    url: '/api/payment/verify',
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: JSON.stringify({ response }),
+                };
+
+                $.ajax(settings).done(function (response) {
+                    alert(JSON.stringify(response));
+                });
+            },
+            theme: {
+                color: '#99cc33',
+            },
+        };
+
+        const rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response) {
+            alert(response.error.code);
+            alert(response.error.description);
+            alert(response.error.source);
+            alert(response.error.step);
+            alert(response.error.reason);
+            alert(response.error.metadata.order_id);
+            alert(response.error.metadata.payment_id);
+        });
+        rzp1.open();
+    };
+
     return (
         <div className='container m-auto w-[90%] md:w-[80%]'>
+            <Head>
+                <title>Checkout | DEVWEAR</title>
+                <meta name="description" content="Checkout page of Your Website Name" />
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0" />
+            </Head>
+
+            <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
+            <Script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></Script>
+
             <h1 className="font-bold text-3xl my-8 text-center">Checkout</h1>
             <h2 className="text-xl font-semibold">1. Delivery Details</h2>
             <div className="mx-auto flex flex-wrap">
@@ -71,13 +160,13 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                     {Object.keys(cart).map((k) => {
                         return <li key={k} className="">
                             <div className='item flex my-5'>
-                                <div className=" font-semibold">{cart[k].name} ({cart[k].size}/{cart[k].variant})</div>
+                                <div className=" font-semibold">{cart[k].name} ({cart[k].size}/{cart[k].constiant})</div>
                                 <div className="flex font-semibold justify-center items-center w-1/3 text-lg">
                                     {/* Here k is slug */}
 
-                                    <AiFillMinusCircle onClick={() => { removeFromCart(k, 1, cart[k].price, cart[k].name, cart[k].size, cart[k].variant) }} className='cursor-pointer text-pink-500' />
+                                    <AiFillMinusCircle onClick={() => { removeFromCart(k, 1, cart[k].price, cart[k].name, cart[k].size, cart[k].constiant) }} className='cursor-pointer text-pink-500' />
                                     <span className="mx-2 text-sm">{cart[k].qty}</span>
-                                    <AiFillPlusCircle onClick={() => { addToCart(k, 1, cart[k].price, cart[k].name, cart[k].size, cart[k].variant) }} className='cursor-pointer text-pink-500' />
+                                    <AiFillPlusCircle onClick={() => { addToCart(k, 1, cart[k].price, cart[k].name, cart[k].size, cart[k].constiant) }} className='cursor-pointer text-pink-500' />
                                 </div>
                             </div>
                         </li>
@@ -87,7 +176,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             </div>
             <div className="mx-4">
                 <Link href={'/checkout'}>
-                    <button className="flex mx-2 text-white bg-pink-500 border-0 py-2 px-[0.7rem] focus:outline-none hover:bg-pink-600 rounded text-sm">
+                    <button id='rzp-button1' onClick={handlePayment} className="flex mx-2 text-white bg-pink-500 border-0 py-2 px-[0.7rem] focus:outline-none hover:bg-pink-600 rounded text-sm">
                         <BsFillBagCheckFill className='m-1' />
                         Pay ₹{subTotal}</button>
                 </Link>
