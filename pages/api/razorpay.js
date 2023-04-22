@@ -54,6 +54,7 @@
 import Razorpay from 'razorpay';
 import connectDb from "@/middleware/mongoose"
 import Order from "@/models/Order"
+import Product from '@/models/Product';
 
 const handler = async (req, res) => {
     const instance = new Razorpay({
@@ -78,6 +79,23 @@ const handler = async (req, res) => {
             // console.log(req.body.userData.address);
 
             // Check if the cart is tampered with
+            let product, sumTotal = 0
+            let cart = req.body.userData.cart
+
+            for (let item in cart) {
+                console.log(item)
+                sumTotal += cart[item].price * cart[item].qty
+                product = await Product.findOne({ slug: item })
+
+                if (product.price != cart[item].price) {
+                    res.status(200).send({ success: false, 'error': 'The price of some items in your cart have changed. Please try again' })
+                    return
+                }
+            }
+            if (sumTotal !== req.body.userData.subTotal) {
+                res.status(200).send({ success: false, 'error': 'The price of some items in your cart have changed. Please try again' })
+                return
+            }
 
             // Check if the cart items are out of stock
 
@@ -95,7 +113,7 @@ const handler = async (req, res) => {
 
             console.log(order)
 
-            res.status(200).json({ orderId: order.id });
+            res.status(200).json({ success: true, orderId: order.id });
         } catch (err) {
             console.error(err);
             res.status(500).send('Error creating order');

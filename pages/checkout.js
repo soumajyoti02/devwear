@@ -8,6 +8,9 @@ import Script from 'next/script';
 import $ from 'jquery';
 import { useRouter } from 'next/router';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // import Razorpay from 'razorpay';
 
 const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
@@ -20,7 +23,10 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
     const [city, setCity] = useState('')
     const [state, setState] = useState('')
 
-    const handleChange = (event) => {
+    const handleChange = async (event) => {
+
+
+
         if (event.target.name === 'name') {
             setName(event.target.value)
         }
@@ -35,6 +41,23 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
         }
         else if (event.target.name === 'pincode') {
             setPincode(event.target.value)
+
+            if (event.target.value.length === 6) {
+                let pins = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pincode`)
+                let pinJson = await pins.json()
+                if (Object.keys(pinJson).includes(event.target.value)) {
+                    setState(pinJson[event.target.value][1])
+                    setCity(pinJson[event.target.value][0])
+                }
+                else {
+                    setState('')
+                    setCity('')
+                }
+            }
+            else {
+                setState('')
+                setCity('')
+            }
         }
 
         setTimeout(() => {
@@ -108,58 +131,72 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             }),
         });
 
-        const { orderId } = await response.json();
+        const responseData = await response.json();
+        const { orderId, success } = responseData
         myorderId = orderId
 
         console.log("Order id is: " + orderId + " amount is: " + subTotal);
+        if (success) {
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: subTotal * 100,
+                currency: 'INR',
+                name: 'Devwear',
+                description: 'Test Transaction',
+                image: `/logo.png`,
+                order_id: myorderId,
+                handler: function (response) {
+                    alert(response.razorpay_payment_id);
+                    alert(response.razorpay_order_id);
+                    alert(response.razorpay_signature);
 
-        const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-            amount: subTotal * 100,
-            currency: 'INR',
-            name: 'Devwear',
-            description: 'Test Transaction',
-            image: `/logo.png`,
-            order_id: myorderId,
-            handler: function (response) {
-                alert(response.razorpay_payment_id);
-                alert(response.razorpay_order_id);
-                alert(response.razorpay_signature);
+                    // Here, We can use --> response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
+                    console.log(response.razorpay_signature);
 
-                // Here, We can use --> response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
-                console.log(response.razorpay_signature);
+                    const settings = {
+                        url: '/api/razorpayConfirm',
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        data: JSON.stringify({ response }),
+                    };
 
-                const settings = {
-                    url: '/api/razorpayConfirm',
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: JSON.stringify({ response }),
-                };
+                    $.ajax(settings).done(function (response) {
+                        if ((response.signatureIsValid)) // Here response is --> Object { signatureIsValid: true/false }
+                            window.location.href = `/order?id=${response.id}`;
+                    });
 
-                $.ajax(settings).done(function (response) {
-                    if ((response.signatureIsValid)) // Here response is --> Object { signatureIsValid: true/false }
-                        window.location.href = `/order?id=${response.id}`;
-                });
+                },
+                theme: {
+                    color: '#99cc33',
+                },
+            };
 
-            },
-            theme: {
-                color: '#99cc33',
-            },
-        };
-
-        const rzp1 = new Razorpay(options);
-        rzp1.on('payment.failed', function (response) {
-            alert(response.error.code);
-            alert(response.error.description);
-            alert(response.error.source);
-            alert(response.error.step);
-            alert(response.error.reason);
-            alert(response.error.metadata.order_id);
-            alert(response.error.metadata.payment_id);
-        });
-        rzp1.open();
+            const rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response) {
+                alert(response.error.code);
+                alert(response.error.description);
+                alert(response.error.source);
+                alert(response.error.step);
+                alert(response.error.reason);
+                alert(response.error.metadata.order_id);
+                alert(response.error.metadata.payment_id);
+            });
+            rzp1.open();
+        }
+        else {
+            toast.error(`${responseData.error}`, {
+                position: "top-left",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+            })
+        }
     };
 
 
@@ -173,7 +210,18 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
 
             <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
             <Script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></Script>
-
+            <ToastContainer
+                position="top-left"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
             <h1 className="font-bold text-3xl my-8 text-center">Checkout</h1>
             <h2 className="text-xl font-semibold">1. Delivery Details</h2>
             <div className="mx-auto flex flex-wrap">
@@ -216,7 +264,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 <div className="px-2 w-1/2">
                     <div className=" mb-4">
                         <label htmlFor="state" className="leading-7 text-sm text-gray-600">State</label>
-                        <input value={state} type="text" id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly={true} />
+                        <input onChange={handleChange} value={state} type="text" id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
                 </div>
                 <div className="px-2 w-1/2">
@@ -224,7 +272,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
 
                     <div className=" mb-4">
                         <label htmlFor="city" className="leading-7 text-sm text-gray-600">City</label>
-                        <input value={city} type="text" id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly={true} />
+                        <input onChange={handleChange} value={city} type="text" id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
 
                 </div>
