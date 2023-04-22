@@ -1,7 +1,30 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-const Order = () => {
+import { useRouter } from 'next/router'
+
+import mongoose from "mongoose";
+import Order from "@/models/Order"
+
+export async function getServerSideProps(context) {
+    if (!mongoose.connections[0].readyState) {
+        await mongoose.connect(process.env.MONGO_URI)
+    }
+    let order = await Order.findById(context.query.id)
+
+    return {
+        props: { order: JSON.parse(JSON.stringify(order)) }, // will be passed to the page component as props
+    }
+}
+
+
+const MyOrder = ({ order }) => {
+
+    // const router = useRouter()
+    // const { id } = router.query
+    console.log(order)
+    const products = order.products
+
     return (
         <div>
             <section className="text-gray-600 body-font overflow-hidden">
@@ -9,40 +32,37 @@ const Order = () => {
                     <div className="lg:w-4/5 mx-auto flex flex-wrap">
                         <div className="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
                             <h2 className="text-sm title-font text-gray-500 tracking-widest">devwear.com</h2>
-                            <h1 className="text-gray-900 text-3xl title-font font-medium mb-4">Order ID: #8977</h1>
+                            <h1 className="text-gray-900 text-2xl title-font font-semibold mb-4">Order ID: #{order.orderId}</h1>
+                            <p className="text-gray-500">Yaay! Your Order has been Successfully placed</p>
+                            <p className="text-gray-500">Your payment status is: <span className="font-semibold text-slate-700">{order.status}</span></p>
 
-                            <p className="leading-relaxed mb-4">Your Order has been successfully placed</p>
                             <div class="flex mb-4">
-                                <a class="flex-grow py-2 text-lg px-1">Description</a>
-                                <a class="flex-grow border-gray-300 py-2 text-lg px-1 text-right">Quantity</a>
-                                <a class="flex-grow border-gray-300 py-2 text-lg px-1 text-right">Item Total</a>
+                                <a class="flex-grow text-left py-2 text-lg px-1">Description</a>
+                                <a class="flex-grow  text-right py-2 text-lg px-1">Quantity</a>
+                                <a class="flex-grow  text-center py-2 text-lg px-1">Price</a>
                             </div>
-                            <div className="flex border-t border-gray-200 py-2">
-                                <span className="text-gray-500">Styled with Code (XL/ White)</span>
-                                <span className="ml-auto text-gray-900">1</span>
-                                <span className="ml-auto text-gray-900">₹499</span>
-                            </div>
-                            <div className="flex border-t border-gray-200 py-2">
-                                <span className="text-gray-500">Styled with Code (XL/ White)</span>
-                                <span className="ml-auto text-gray-900">1</span>
-                                <span className="ml-auto text-gray-900">₹499</span>
-                            </div>
-                            <div className="flex border-t border-b mb-6 border-gray-200 py-2">
-                                <span className="text-gray-500">Styled with Code (XL/ White)</span>
-                                <span className="ml-auto text-gray-900">1</span>
-                                <span className="ml-auto text-gray-900">₹499</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="title-font font-medium text-2xl text-gray-900">SubTotal: ₹1895.00</span>
-                                <button className="flex w-36 mt-3 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded">Track Order</button>
+
+                            {Object.keys(products).map((key) => {
+                                return <div key={key} className="flex border-t border-gray-200 py-2">
+                                    <span className="text-gray-500 w-[60%]">{products[key].name}({products[key].size}/{products[key].variant})</span>
+                                    <span className="m-auto text-gray-900">{products[key].qty}</span>
+                                    <span className="m-auto text-gray-900">₹{products[key].price}</span>
+                                </div>
+                            })}
+
+
+
+                            <div className="flex flex-col mt-2 md:mt-4">
+                                <span className="title-font font-semibold text-xl md:text-2xl text-gray-900 ">SubTotal: ₹{order.amount}.00</span>
+                                <button className="flex w-36 mt-4 md:mt-5 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded">Track Order</button>
                             </div>
                         </div>
-                        <img alt="ecommerce" className="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded" src="https://dummyimage.com/400x400" />
+                        <img alt="ecommerce" className="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded" src="/order.jpg" />
                     </div>
                 </div>
-            </section>
-        </div>
+            </section >
+        </div >
     )
 }
 
-export default Order
+export default MyOrder

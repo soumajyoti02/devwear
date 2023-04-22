@@ -1,32 +1,40 @@
-import React, { useEffect } from 'react'
-import mongoose from "mongoose";
-import Order from "@/models/Order"
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router';
-
-export async function getServerSideProps(context) {
-    if (!mongoose.connections[0].readyState) {
-        await mongoose.connect(process.env.MONGO_URI)
-    }
-    let orders = await Order.find({})
-
-    return {
-        props: { orders: orders }
-    }
-}
+import Link from 'next/link';
 
 const Orders = () => {
 
     const router = useRouter()
+    const [orders, setOrders] = useState([])
+
     useEffect(() => {
+
+        const fetchOrders = async () => {
+            const a = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/myorders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token: localStorage.getItem('token') }),
+            });
+            let res = await a.json()
+            setOrders(res.orders)
+            console.log(res)
+        }
+
         if (!localStorage.getItem('token')) {
             router.push('/')
         }
+        else {
+            fetchOrders()
+        }
+
     }, [])
+
 
     return (
         <div>
-            <div className="container  mx-auto w-[90%] ">
-
+            <div className="container  mx-auto w-[90%] min-h-screen">
 
                 <div className="flex flex-col">
                     <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -36,34 +44,25 @@ const Orders = () => {
                                 <table className="min-w-full text-left text-sm font-light">
                                     <thead className="border-b font-medium dark:border-neutral-500">
                                         <tr>
-                                            <th scope="col" className="px-6 py-4">#</th>
-                                            <th scope="col" className="px-6 py-4">First</th>
-                                            <th scope="col" className="px-6 py-4">Last</th>
-                                            <th scope="col" className="px-6 py-4">Handle</th>
+                                            <th scope="col" className="px-6 py-4">Order Id</th>
+                                            <th scope="col" className="px-6 py-4">Email</th>
+                                            <th scope="col" className="px-6 py-4">Amount</th>
+                                            <th scope="col" className="px-6 py-4">Details</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr
-                                            className="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 ">
-                                            <td className="whitespace-nowrap px-6 py-4 font-medium">1</td>
-                                            <td className="whitespace-nowrap px-6 py-4">Mark</td>
-                                            <td className="whitespace-nowrap px-6 py-4">Otto</td>
-                                            <td className="whitespace-nowrap px-6 py-4">@mdo</td>
-                                        </tr>
-                                        <tr
-                                            className="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 ">
-                                            <td className="whitespace-nowrap px-6 py-4 font-medium">2</td>
-                                            <td className="whitespace-nowrap px-6 py-4">Jacob</td>
-                                            <td className="whitespace-nowrap px-6 py-4">Thornton</td>
-                                            <td className="whitespace-nowrap px-6 py-4">@fat</td>
-                                        </tr>
-                                        <tr
-                                            className="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 ">
-                                            <td className="whitespace-nowrap px-6 py-4 font-medium">3</td>
-                                            <td className="whitespace-nowrap px-6 py-4">Larry</td>
-                                            <td className="whitespace-nowrap px-6 py-4">Wild</td>
-                                            <td className="whitespace-nowrap px-6 py-4">@twitter</td>
-                                        </tr>
+
+                                        {orders.map((item) => {
+                                            return <tr
+                                                key={item._id} className="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 ">
+                                                <td className="whitespace-nowrap px-6 py-4 font-medium">{item.orderId}</td>
+                                                <td className="whitespace-nowrap px-6 py-4">{item.email}</td>
+                                                <td className="whitespace-nowrap px-6 py-4">{item.amount}</td>
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    <Link href={`/order/?id=${item._id}`}>Details</Link>
+                                                </td>
+                                            </tr>
+                                        })}
                                     </tbody>
                                 </table>
                             </div>

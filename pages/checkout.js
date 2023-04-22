@@ -11,35 +11,107 @@ import { useRouter } from 'next/router';
 // import Razorpay from 'razorpay';
 
 const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [phone, setPhone] = useState('')
+    const [pincode, setPincode] = useState('')
+    const [address, setAddress] = useState('')
+    const [disabled, setDisabled] = useState(true)
+    const [city, setCity] = useState('')
+    const [state, setState] = useState('')
 
-    const [orderId, setOrderId] = useState(null);
+    const handleChange = (event) => {
+        if (event.target.name === 'name') {
+            setName(event.target.value)
+        }
+        else if (event.target.name === 'email') {
+            setEmail(event.target.value)
+        }
+        else if (event.target.name === 'phone') {
+            setPhone(event.target.value)
+        }
+        else if (event.target.name === 'address') {
+            setAddress(event.target.value)
+        }
+        else if (event.target.name === 'pincode') {
+            setPincode(event.target.value)
+        }
+
+        setTimeout(() => {
+            if (name.length >= 3 && email.length >= 3 && phone.length >= 3 && address.length >= 3 && pincode.length >= 3) {
+                setDisabled(false)
+            }
+            else {
+                setDisabled(true)
+            }
+        }, 100);
+
+    }
+
+    const [orderId, setOrderId] = useState();
+
     const router = useRouter();
 
-    useEffect(() => {
-        const createOrderId = async () => {
-            try {
-                const response = await fetch('/create/orderId', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ amount: '1' }),
-                });
+    // const createOrderId = async () => {
+    //     const userData = { cart, subTotal, orderId, email: email, name, address, pincode, phone };
+    //     console.log(userData.subTotal);
+    //     console.log(userData.email);
+    //     console.log(userData.address);
 
-                const { orderId } = await response.json();
-                setOrderId(orderId);
-                console.log(orderId);
-                $('button').show();
-            } catch (error) {
-                console.log(error);
-            }
-        };
+    //     try {
+    //         console.log("Fetching orderId...");
+    //         const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/razorpay`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 userData: userData,
+    //             }),
+    //         });
 
-        createOrderId();
-    }, []);
+    //         const { orderId } = await response.json();
 
-    const handlePayment = (e) => {
-        e.preventDefault();
+    //         console.log("Order id bEFORE: " + orderId);
+    //         console.log("Subtotal is: " + subTotal);
+    //         // setOrderId(`${orderId}`);
+    //         setOrderId(orderId);
+    //         console.log("Order id AFTER: " + orderId);
+
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
+
+
+    const handlePayment = async () => {
+        // e.preventDefault();
+
+        // await createOrderId();
+
+        let myorderId;
+        const userData = { cart, subTotal, myorderId, email: email, name, address, pincode, phone };
+
+        console.log(userData.subTotal);
+        console.log(userData.email);
+        console.log(userData.address);
+        console.log("Fetching orderId...");
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/razorpay`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userData: userData,
+            }),
+        });
+
+        const { orderId } = await response.json();
+        myorderId = orderId
+
+        console.log("Order id is: " + orderId + " amount is: " + subTotal);
 
         const options = {
             key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -48,14 +120,17 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             name: 'Devwear',
             description: 'Test Transaction',
             image: `/logo.png`,
-            order_id: orderId,
+            order_id: myorderId,
             handler: function (response) {
                 alert(response.razorpay_payment_id);
                 alert(response.razorpay_order_id);
                 alert(response.razorpay_signature);
 
+                // Here, We can use --> response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
+                console.log(response.razorpay_signature);
+
                 const settings = {
-                    url: '/api/payment/verify',
+                    url: '/api/razorpayConfirm',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -64,8 +139,10 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 };
 
                 $.ajax(settings).done(function (response) {
-                    alert(JSON.stringify(response));
+                    if ((response.signatureIsValid)) // Here response is --> Object { signatureIsValid: true/false }
+                        window.location.href = `/order?id=${response.id}`;
                 });
+
             },
             theme: {
                 color: '#99cc33',
@@ -85,6 +162,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
         rzp1.open();
     };
 
+
     return (
         <div className='container m-auto w-[90%] md:w-[80%]'>
             <Head>
@@ -102,20 +180,20 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 <div className="px-2 w-1/2">
                     <div className=" mb-4">
                         <label htmlFor="name" className="leading-7 text-sm text-gray-600">Name</label>
-                        <input type="text" id="name" name="name" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <input onChange={handleChange} value={name} type="text" id="name" name="name" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
                 </div>
                 <div className="px-2 w-1/2">
                     <div className=" mb-4">
                         <label htmlFor="email" className="leading-7 text-sm text-gray-600">Email</label>
-                        <input type="email" id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <input onChange={handleChange} value={email} type="email" id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
                 </div>
             </div>
             <div className="px-2 w-full">
                 <div className=" mb-4">
                     <label htmlFor="address" className="leading-7 text-sm text-gray-600">Address</label>
-                    <textarea id="address" name="address" cols={'30'} rows={'2'} className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" ></textarea>
+                    <textarea onChange={handleChange} value={address} id="address" name="address" cols={'30'} rows={'2'} className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" ></textarea>
                 </div>
             </div>
 
@@ -123,13 +201,13 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 <div className="px-2 w-1/2">
                     <div className=" mb-4">
                         <label htmlFor="phone" className="leading-7 text-sm text-gray-600">Phone</label>
-                        <input type="phone" id="phone" name="phone" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <input onChange={handleChange} value={phone} type="phone" id="phone" name="phone" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
                 </div>
                 <div className="px-2 w-1/2">
                     <div className=" mb-4">
-                        <label htmlFor="city" className="leading-7 text-sm text-gray-600">City</label>
-                        <input type="text" id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <label htmlFor="pincode" className="leading-7 text-sm text-gray-600">PinCode</label>
+                        <input onChange={handleChange} value={pincode} type="text" id="pincode" name="pincode" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
                 </div>
             </div>
@@ -138,14 +216,17 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 <div className="px-2 w-1/2">
                     <div className=" mb-4">
                         <label htmlFor="state" className="leading-7 text-sm text-gray-600">State</label>
-                        <input type="text" id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <input value={state} type="text" id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly={true} />
                     </div>
                 </div>
                 <div className="px-2 w-1/2">
+
+
                     <div className=" mb-4">
-                        <label htmlFor="pincode" className="leading-7 text-sm text-gray-600">PinCode</label>
-                        <input type="text" id="pincode" name="pincode" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <label htmlFor="city" className="leading-7 text-sm text-gray-600">City</label>
+                        <input value={city} type="text" id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly={true} />
                     </div>
+
                 </div>
             </div>
 
@@ -176,7 +257,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             </div>
             <div className="mx-4">
                 <Link href={'/checkout'}>
-                    <button id='rzp-button1' onClick={handlePayment} className="flex mx-2 text-white bg-pink-500 border-0 py-2 px-[0.7rem] focus:outline-none hover:bg-pink-600 rounded text-sm">
+                    <button id='rzp-button1' disabled={disabled} onClick={() => handlePayment()} className="disabled:bg-pink-300  flex mx-2 text-white bg-pink-500 border-0 py-2 px-[0.7rem] focus:outline-none hover:bg-pink-600 rounded text-sm">
                         <BsFillBagCheckFill className='m-1' />
                         Pay ₹{subTotal}</button>
                 </Link>

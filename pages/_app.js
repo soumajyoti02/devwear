@@ -29,15 +29,14 @@ export default function App({ Component, pageProps }) {
         saveCart(JSON.parse(localStorage.getItem("cart")))
       }
     } catch (error) {
-      console.error(error)
       localStorage.clear()
     }
 
     const token = localStorage.getItem('token')
     if (token) {
       setUser({ value: token })
-      setKey(Math.random())
     }
+    setKey(Math.random())
 
   }, [router.query])
 
@@ -60,12 +59,14 @@ export default function App({ Component, pageProps }) {
     // Get an array of all the keys in the cart object
     let keys = Object.keys(myCart)
 
+    // console.log(keys)
+
     // Loop through each key in the cart object
     for (let index = 0; index < keys.length; index++) {
       // Multiply the price and quantity of the item together and add it to the subt variable
       subt += myCart[keys[index]].price * myCart[keys[index]].qty
     }
-
+    // console.log(subt)
     // Set the subtotal state to the value of subt
     setSubtotal(subt)
   }
@@ -78,7 +79,8 @@ export default function App({ Component, pageProps }) {
 
 
   const buyNow = (itemCode, qty, price, name, size, variant) => {
-    let newCart = { itemCode: { qty: 1, price, name, size, variant } }
+    let newCart = {}
+    newCart[itemCode] = { qty: 1, price, name, size, variant }
 
     setCart(newCart)
     saveCart(newCart)
