@@ -87,6 +87,12 @@ const handler = async (req, res) => {
                 sumTotal += cart[item].price * cart[item].qty
                 product = await Product.findOne({ slug: item })
 
+                // Check if the cart items are out of stock
+                if (product.availableQty < cart[item].qty) {
+                    res.status(200).send({ success: false, 'error': 'Some items in your cart went out of stock. Please Try again!' })
+                    return
+                }
+
                 if (product.price != cart[item].price) {
                     res.status(200).send({ success: false, 'error': 'The price of some items in your cart have changed. Please try again' })
                     return
@@ -97,11 +103,13 @@ const handler = async (req, res) => {
                 return
             }
 
-            // Check if the cart items are out of stock
+
+
+
 
             // Check if the Details are Valid
 
-            //Initiate an Order
+            //Initiate an Order, i.e. save the order in mongoDB
             let orders = new Order({
                 email: req.body.userData.email,
                 orderId: order.id,

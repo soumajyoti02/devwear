@@ -32,9 +32,9 @@ export default function App({ Component, pageProps }) {
       localStorage.clear()
     }
 
-    const token = localStorage.getItem('token')
-    if (token) {
-      setUser({ value: token })
+    const myuser = JSON.parse(localStorage.getItem('myuser'))
+    if (myuser) {
+      setUser({ value: myuser.token, email: myuser.email })
     }
     setKey(Math.random())
 
@@ -42,7 +42,7 @@ export default function App({ Component, pageProps }) {
 
 
   const logout = () => {
-    localStorage.removeItem('token')
+    localStorage.removeItem('myuser')
     setKey(Math.random())
     setUser({ value: null })
     router.push('/')

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -18,9 +18,17 @@ export async function getServerSideProps(context) {
 }
 
 
-const MyOrder = ({ order }) => {
+const MyOrder = ({ order, clearCart }) => {
 
-    // const router = useRouter()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (router.query.ClearCart == 1) {
+            clearCart()
+        }
+    }, [])
+
+
     // const { id } = router.query
     console.log(order)
     const products = order.products
@@ -36,10 +44,10 @@ const MyOrder = ({ order }) => {
                             <p className="text-gray-500">Yaay! Your Order has been Successfully placed</p>
                             <p className="text-gray-500">Your payment status is: <span className="font-semibold text-slate-700">{order.status}</span></p>
 
-                            <div class="flex mb-4">
-                                <a class="flex-grow text-left py-2 text-lg px-1">Description</a>
-                                <a class="flex-grow  text-right py-2 text-lg px-1">Quantity</a>
-                                <a class="flex-grow  text-center py-2 text-lg px-1">Price</a>
+                            <div className="flex mb-4">
+                                <a className="flex-grow text-left py-2 text-lg px-1">Description</a>
+                                <a className="flex-grow  text-right py-2 text-lg px-1">Quantity</a>
+                                <a className="flex-grow  text-center py-2 text-lg px-1">Price</a>
                             </div>
 
                             {Object.keys(products).map((key) => {

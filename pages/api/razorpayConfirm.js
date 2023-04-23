@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import connectDb from "@/middleware/mongoose"
 import Order from "@/models/Order"
+import Product from '@/models/Product';
 
 const handler = async (req, res) => {
     if (req.method === 'POST') {
@@ -19,6 +20,12 @@ const handler = async (req, res) => {
             response.signatureIsValid = true;
             order = await Order.findOneAndUpdate({ orderId: razorpay_order_id }, { status: 'Paid', paymentInfo: JSON.stringify(req.body) })
             response.id = order._id;
+
+            // Updating the available quantity in Database
+            let products = order.products
+            for (let slug in products) {
+                await Product.findOneAndUpdate({ slug: slug }, { $inc: { "availableQty": - products[slug].qty } })
+            }
         }
         else {
             order = await Order.findOneAndUpdate({ orderId: razorpay_order_id }, { status: 'Pending', paymentInfo: JSON.stringify(req.body) })
