@@ -18,7 +18,8 @@ const handler = async (req, res) => {
         if (expectedSignature === razorpay_signature) {
 
             response.signatureIsValid = true;
-            order = await Order.findOneAndUpdate({ orderId: razorpay_order_id }, { status: 'Paid', paymentInfo: JSON.stringify(req.body) })
+            console.log(razorpay_payment_id)
+            order = await Order.findOneAndUpdate({ orderId: razorpay_order_id }, { status: 'Paid', paymentInfo: JSON.stringify(req.body), transactionid: razorpay_payment_id })
             response.id = order._id;
 
             // Updating the available quantity in Database

@@ -88,6 +88,9 @@ export default function App({ Component, pageProps }) {
 
   // Define a function called addToCart that takes in several arguments
   const addToCart = (itemCode, qty, price, name, size, variant) => {
+    if (Object.keys(cart).length === 0) {
+      setKey(Math.random())
+    }
     // Create a new variable called newCart and set it equal to the current value of the cart state
     let newCart = cart
 

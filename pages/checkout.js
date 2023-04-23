@@ -27,7 +27,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('myuser'))
 
-        if (user.token) {
+        if (user && user.token) {
             setUser(user)
             setEmail(user.email)
         }
@@ -102,7 +102,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
         });
 
         const responseData = await response.json();
-        const { orderId, success } = responseData
+        const { orderId, success, cartClear } = responseData
         myorderId = orderId
 
         if (success) {
@@ -157,7 +157,6 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             rzp1.open();
         }
         else {
-            clearCart()
             toast.error(`${responseData.error}`, {
                 position: "top-left",
                 autoClose: 3000,
@@ -168,6 +167,9 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 progress: undefined,
                 theme: "light",
             })
+        }
+        if (cartClear) {
+            clearCart()
         }
     };
 
@@ -207,7 +209,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                     <div className=" mb-4">
                         <label htmlFor="email" className="leading-7 text-sm text-gray-600">Email</label>
 
-                        {user && user.value ? <input value={user.email} type="email" id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly={true} /> : <input onChange={handleChange} value={email} type="email" id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />}
+                        {user && user.token ? <input value={user.email} type="email" id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly={true} /> : <input onChange={handleChange} value={email} type="email" id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />}
 
 
                     </div>
