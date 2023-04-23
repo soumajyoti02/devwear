@@ -25,11 +25,13 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
     const [user, setUser] = useState({ value: null })
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('myuser'))
+        const myuser = JSON.parse(localStorage.getItem('myuser'))
 
-        if (user && user.token) {
-            setUser(user)
-            setEmail(user.email)
+        if (myuser && myuser.token) {
+            setUser(myuser)
+            setEmail(myuser.email)
+
+            fetchData(myuser.token)
         }
     }, [])
 
@@ -42,10 +44,38 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
         }
     }, [name, email, phone, pincode, address])
 
+    const fetchData = async (token) => {
+        let data = { token: token }
+        const req = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/getuser`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+        const res = await req.json()
+        setName(res.name)
+        setAddress(res.address)
+        setPincode(res.pincode)
+        setPhone(res.phone)
+        getPinCode(res.pincode)
+    }
+
+    const getPinCode = async (pin) => {
+        let pins = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pincode`)
+        let pinJson = await pins.json()
+        if (Object.keys(pinJson).includes(pin)) {
+            setState(pinJson[pin][1])
+            setCity(pinJson[pin][0])
+        }
+        else {
+            setState('')
+            setCity('')
+        }
+    }
+
+
     const handleChange = async (event) => {
-
-
-
         if (event.target.name === 'name') {
             setName(event.target.value)
         }
@@ -62,34 +92,21 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             setPincode(event.target.value)
 
             if (event.target.value.length === 6) {
-                let pins = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pincode`)
-                let pinJson = await pins.json()
-                if (Object.keys(pinJson).includes(event.target.value)) {
-                    setState(pinJson[event.target.value][1])
-                    setCity(pinJson[event.target.value][0])
-                }
-                else {
-                    setState('')
-                    setCity('')
-                }
+                getPinCode(event.target.value)
             }
             else {
                 setState('')
                 setCity('')
             }
         }
-
-
-
-
-
     }
+
     const [orderId, setOrderId] = useState();
     const router = useRouter();
 
     const handlePayment = async () => {
         let myorderId;
-        const userData = { cart, subTotal, myorderId, email: email, name, address, pincode, phone };
+        const userData = { cart, subTotal, myorderId, email: email, name, address, pincode, phone, city };
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/razorpay`, {
             method: 'POST',

@@ -18,8 +18,8 @@ const handler = async (req, res) => {
                 receipt: 'receipt',
             };
 
-            // console.log(instance)
             const order = await instance.orders.create(options);
+            console.log(order)
 
             // Check if the PinCode is Servicable
             if (!Object.keys(pincodes).includes(req.body.userData.pincode)) {
@@ -38,7 +38,6 @@ const handler = async (req, res) => {
             }
 
             for (let item in cart) {
-                // console.log(item)
                 sumTotal += cart[item].price * cart[item].qty
                 product = await Product.findOne({ slug: item })
 
@@ -75,12 +74,14 @@ const handler = async (req, res) => {
                 email: req.body.userData.email,
                 orderId: order.id,
                 address: req.body.userData.address,
+                city: req.body.userData.city,
+                name: req.body.userData.name,
+                pincode: req.body.userData.pincode,
+                phone: req.body.userData.phone,
                 amount: req.body.userData.subTotal,
                 products: req.body.userData.cart,
             })
             await orders.save()
-
-            // console.log(order)
 
             res.status(200).json({ success: true, orderId: order.id, cartClear: true });
         } catch (err) {

@@ -5,7 +5,6 @@ import Product from '@/models/Product';
 
 const handler = async (req, res) => {
     if (req.method === 'POST') {
-        console.log(req.body)
         let order;
 
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body.response;
@@ -18,7 +17,6 @@ const handler = async (req, res) => {
         if (expectedSignature === razorpay_signature) {
 
             response.signatureIsValid = true;
-            console.log(razorpay_payment_id)
             order = await Order.findOneAndUpdate({ orderId: razorpay_order_id }, { status: 'Paid', paymentInfo: JSON.stringify(req.body), transactionid: razorpay_payment_id })
             response.id = order._id;
 
