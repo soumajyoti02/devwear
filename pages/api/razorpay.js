@@ -1,56 +1,3 @@
-{/*
-
-// const express = require('express')
-// const app = express()
-// const port = 3000
-// const bodyparser = require("body-parser")
-// const Razorpay = require('razorpay')
-// app.use(require("body-parser").json())
-
-// const instance = new Razorpay({
-//     key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-//     key_secret: process.env.RAZORPAY_KEY_SECRET,
-// });
-
-// app.get('/', (req, res) => {
-//     res.sendFile("checkout.js", { root: _dirname })
-// })
-
-// app.post(`${process.env.NEXT_PUBLIC_HOST}/create/orderId`, (req, res) => {
-//     console.log("create orderId request")
-//     const options = {
-//         amount: req.amount,  // amount in the smallest currency unit
-//         currency: "INR",
-//         receipt: "rcp1"
-//     }
-//     instance.orders.create(options, (err, order) => {
-//         console.log(order.id);
-//         res.send({ orderId: order.id })
-//     });
-// })
-
-// app.post("/api/payment/verify", (req, res) => {
-
-//     let body = req.body.response.razorpay_order_id + "|" + req.body.response.razorpay_payment_id;
-
-//     const crypto = require("crypto");
-//     const expectedSignature = crypto.createHmac('sha256', `${process.env.RAZORPAY_KEY_SECRET}`)
-//         .update(body.toString())
-//         .digest('hex');
-//     // console.log("sig received ", req.body.response.razorpay_signature);
-//     // console.log("sig generated ", expectedSignature);
-//     const response = { "signatureIsValid": "false" }
-//     if (expectedSignature === req.body.response.razorpay_signature)
-//         response = { "signatureIsValid": "true" }
-//     res.send(response);
-// });
-
-// app.listen(port, () => {
-//     console.log(`Devwear listening at http://localhost:${port}`)
-// })
-
-*/}
-
 import Razorpay from 'razorpay';
 import connectDb from "@/middleware/mongoose"
 import Order from "@/models/Order"
@@ -63,27 +10,28 @@ const handler = async (req, res) => {
     });
 
     if (req.method === 'POST') {
-
         try {
             const options = {
                 amount: (req.body.userData.subTotal * 100) + 200,
                 currency: 'INR',
                 receipt: 'receipt',
             };
-            const order = await instance.orders.create(options);
 
-            // console.log(order.id);
-            // console.log(req.body.userData.subTotal);
-            // console.log(req.body.userData);
-            // console.log(req.body.userData.email);
-            // console.log(req.body.userData.address);
+            // console.log(instance)
+            const order = await instance.orders.create(options);
 
             // Check if the cart is tampered with
             let product, sumTotal = 0
             let cart = req.body.userData.cart
 
+            //To Give error if User want to place order of Rs. 0
+            if (req.body.userData.subTotal <= 0) {
+                res.status(200).send({ success: false, 'error': 'Cart is Empty! Please build your cart and Try again!' })
+                return
+            }
+
             for (let item in cart) {
-                console.log(item)
+                // console.log(item)
                 sumTotal += cart[item].price * cart[item].qty
                 product = await Product.findOne({ slug: item })
 
@@ -103,11 +51,17 @@ const handler = async (req, res) => {
                 return
             }
 
-
-
-
-
             // Check if the Details are Valid
+
+            if (req.body.userData.phone.length !== 10 || !Number.isInteger(Number(req.body.userData.phone))) {
+                res.status(200).send({ success: false, 'error': 'Please Enter Your 10 digit phone number!' })
+                return
+            }
+
+            if (req.body.userData.pincode.length !== 6 || !Number.isInteger(Number(req.body.userData.pincode))) {
+                res.status(200).send({ success: false, 'error': 'Please Enter Your 6 digit Pincode!' })
+                return
+            }
 
             //Initiate an Order, i.e. save the order in mongoDB
             let orders = new Order({
@@ -119,7 +73,7 @@ const handler = async (req, res) => {
             })
             await orders.save()
 
-            console.log(order)
+            // console.log(order)
 
             res.status(200).json({ success: true, orderId: order.id });
         } catch (err) {

@@ -19,7 +19,7 @@ const Orders = () => {
             });
             let res = await a.json()
             setOrders(res.orders)
-            console.log(res)
+            // console.log(res)
         }
 
         if (!localStorage.getItem('myuser')) {

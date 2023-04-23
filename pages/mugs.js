@@ -28,6 +28,10 @@ export async function getServerSideProps(context) {
                 mug[item.title].color = [item.color]
                 mug[item.title].size = [item.size]
             }
+            else {
+                mug[item.title].color = []
+                mug[item.title].size = []
+            }
         }
     }
 

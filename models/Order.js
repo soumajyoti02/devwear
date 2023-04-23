@@ -10,6 +10,7 @@ const OrderSchema = new mongoose.Schema({
     address: { type: String, required: true }, // Address for the order
     amount: { type: Number, required: true }, // Total amount of the order
     status: { type: String, default: 'Initiated', required: true }, // Status of the order (default is Pending)
+    deliveryStatus: { type: String, default: 'unshipped', required: true }, // Status of the order (default is Pending)
 }, { timestamps: true }) // Adds timestamps for when the order is created and modified
 
 

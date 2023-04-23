@@ -27,10 +27,7 @@ const handler = async (req, res) => {
                 await Product.findOneAndUpdate({ slug: slug }, { $inc: { "availableQty": - products[slug].qty } })
             }
         }
-        else {
-            order = await Order.findOneAndUpdate({ orderId: razorpay_order_id }, { status: 'Pending', paymentInfo: JSON.stringify(req.body) })
-            response.id = order._id;
-        }
+
         res.status(200).json(response);
     } else {
         res.status(404).send('Not Found');

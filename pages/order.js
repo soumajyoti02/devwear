@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -19,10 +19,14 @@ export async function getServerSideProps(context) {
 
 
 const MyOrder = ({ order, clearCart }) => {
+    const [date, setDate] = useState();
 
     const router = useRouter()
 
     useEffect(() => {
+        const fetchDate = new Date(order.createdAt)
+        setDate(fetchDate)
+
         if (router.query.ClearCart == 1) {
             clearCart()
         }
@@ -30,7 +34,7 @@ const MyOrder = ({ order, clearCart }) => {
 
 
     // const { id } = router.query
-    console.log(order)
+    // console.log(order)
     const products = order.products
 
     return (
@@ -42,6 +46,7 @@ const MyOrder = ({ order, clearCart }) => {
                             <h2 className="text-sm title-font text-gray-500 tracking-widest">devwear.com</h2>
                             <h1 className="text-gray-900 text-2xl title-font font-semibold mb-4">Order ID: #{order.orderId}</h1>
                             <p className="text-gray-500">Yaay! Your Order has been Successfully placed</p>
+                            <p className="text-gray-500">Order Placed On: {date && date.toLocaleDateString("en-IN", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                             <p className="text-gray-500">Your payment status is: <span className="font-semibold text-slate-700">{order.status}</span></p>
 
                             <div className="flex mb-4">

@@ -33,6 +33,15 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
         }
     }, [])
 
+    useEffect(() => {
+        if (name.length >= 3 && email.length >= 3 && phone.length >= 3 && address.length >= 3 && pincode.length >= 3) {
+            setDisabled(false)
+        }
+        else {
+            setDisabled(true)
+        }
+    }, [name, email, phone, pincode, address])
+
     const handleChange = async (event) => {
 
 
@@ -70,66 +79,17 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             }
         }
 
-        setTimeout(() => {
-            if (name.length >= 3 && email.length >= 3 && phone.length >= 3 && address.length >= 3 && pincode.length >= 3) {
-                setDisabled(false)
-            }
-            else {
-                setDisabled(true)
-            }
-        }, 100);
+
+
+
 
     }
-
     const [orderId, setOrderId] = useState();
-
     const router = useRouter();
 
-    // const createOrderId = async () => {
-    //     const userData = { cart, subTotal, orderId, email: email, name, address, pincode, phone };
-    //     console.log(userData.subTotal);
-    //     console.log(userData.email);
-    //     console.log(userData.address);
-
-    //     try {
-    //         console.log("Fetching orderId...");
-    //         const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/razorpay`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify({
-    //                 userData: userData,
-    //             }),
-    //         });
-
-    //         const { orderId } = await response.json();
-
-    //         console.log("Order id bEFORE: " + orderId);
-    //         console.log("Subtotal is: " + subTotal);
-    //         // setOrderId(`${orderId}`);
-    //         setOrderId(orderId);
-    //         console.log("Order id AFTER: " + orderId);
-
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
-
-
-
     const handlePayment = async () => {
-        // e.preventDefault();
-
-        // await createOrderId();
-
         let myorderId;
         const userData = { cart, subTotal, myorderId, email: email, name, address, pincode, phone };
-
-        console.log(userData.subTotal);
-        console.log(userData.email);
-        console.log(userData.address);
-        console.log("Fetching orderId...");
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/razorpay`, {
             method: 'POST',
@@ -145,7 +105,6 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
         const { orderId, success } = responseData
         myorderId = orderId
 
-        console.log("Order id is: " + orderId + " amount is: " + subTotal);
         if (success) {
             const options = {
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -156,12 +115,12 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 image: `/logo.png`,
                 order_id: myorderId,
                 handler: function (response) {
-                    alert(response.razorpay_payment_id);
-                    alert(response.razorpay_order_id);
-                    alert(response.razorpay_signature);
+
+                    // alert(response.razorpay_payment_id);
+                    // alert(response.razorpay_order_id);
+                    // alert(response.razorpay_signature);
 
                     // Here, We can use --> response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
-                    console.log(response.razorpay_signature);
 
                     const settings = {
                         url: '/api/razorpayConfirm',
@@ -173,7 +132,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                     };
 
                     $.ajax(settings).done(function (response) {
-                        if ((response.signatureIsValid)) // Here response is --> Object { signatureIsValid: true/false }
+                        if (response.signatureIsValid) // Here response is --> Object { signatureIsValid: true/false }
                             window.location.href = `/order?id=${response.id}&ClearCart=1`;
                     });
 
@@ -192,6 +151,8 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
                 alert(response.error.reason);
                 alert(response.error.metadata.order_id);
                 alert(response.error.metadata.payment_id);
+
+
             });
             rzp1.open();
         }
@@ -262,8 +223,8 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
             <div className="mx-auto flex flex-wrap">
                 <div className="px-2 w-1/2">
                     <div className=" mb-4">
-                        <label htmlFor="phone" className="leading-7 text-sm text-gray-600">Phone</label>
-                        <input onChange={handleChange} value={phone} type="phone" id="phone" name="phone" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <label htmlFor="phone" className="leading-7 text-sm text-gray-600">Phone Number</label>
+                        <input onChange={handleChange} value={phone} type="phone" id="phone" name="phone" placeholder='Your 10 Digit Phone Number' className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
                 </div>
                 <div className="px-2 w-1/2">
@@ -285,7 +246,7 @@ const Checkout = ({ cart, clearCart, addToCart, removeFromCart, subTotal }) => {
 
 
                     <div className=" mb-4">
-                        <label htmlFor="city" className="leading-7 text-sm text-gray-600">City</label>
+                        <label htmlFor="city" className="leading-7 text-sm text-gray-600">District</label>
                         <input onChange={handleChange} value={city} type="text" id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                     </div>
 
