@@ -4,6 +4,7 @@ import connectDb from "@/middleware/mongoose"
 import jsonwebtoken from "jsonwebtoken"
 
 var CryptoJS = require("crypto-js");
+import nodemailer from 'nodemailer';
 
 var jwt = require('jsonwebtoken');
 
@@ -32,13 +33,60 @@ const handler = async (req, res) => {
                     token: token,
                 })
                 await forget.save()
-                console.log(token) // To be removed. [PENDING]
+                // console.log(token) // To be removed. [PENDING]
 
 
-                let email = `We have sent you this email in response to your request to reset your password on Devwear.com
-                To reset your password, please follow the link below:
-                <a href="https://devwear.com/forget?token=${token}">Click Here to Reset Your Password</a>
-                We recommend that you keep your password secure and not share it with anyone. If you feel your password has been compromised, you can change it by going to your My Account Page and change your password.`
+                let email = `Dear ${user.name},
+
+We have received a request to reset your password for your account on devwear.com. To ensure the security of your account, we recommend that you reset your password as soon as possible.
+
+Please follow the link below to reset your password securely:
+
+${process.env.NEXT_PUBLIC_HOST}/forget?token=${token}
+
+As a security precaution, this link will only be valid for a limited time. We also recommend that you take the following steps to further secure your account:
+
+1. Use a strong and unique password that is not used for any other accounts.
+2. Be Cautious with OTPs: Be cautious with One-Time Passwords (OTPs) and never share them with anyone.
+3. If you did not initiate this password reset request, please contact us immediately at [Contact Information]. We take the security of our users' accounts very seriously, and we are here to help you in any way we can.
+
+Thank you for choosing devwear.com! We appreciate your trust in us.
+
+Warm regards,
+
+Soumajyoti
+Founder & CEO
+Devwear.com
+`
+
+                const sendResetLink = async () => {
+                    const transporter = nodemailer.createTransport({
+                        host: 'smtp.gmail.com',
+                        port: 587,
+                        secure: false,
+                        requireTLS: true,
+                        auth: {
+                            user: 'soumyabwn3@gmail.com',
+                            pass: 'kuwxqxcbinnlhxbr',
+                        },
+                    });
+                    let message = {
+                        from: 'soumyabwn3@gmail.com',
+                        to: user.email,
+                        subject: ' Important: Reset Your Password',
+                        text: email,
+                    };
+
+                    let info = transporter.sendMail(message, function (error, information) {
+                        if (error) {
+                            console.log(error)
+                        }
+                        else {
+                            console.log('Message sent successfully as %s', info.messageId);
+                        }
+                    });
+                }
+                sendResetLink()
             }
 
             res.status(200).json({ success: true })
