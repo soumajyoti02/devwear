@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Head from 'next/head';
 
 const Orders = () => {
 
@@ -34,6 +35,11 @@ const Orders = () => {
 
     return (
         <div>
+            <Head>
+                <title>Orders | DEVWEAR</title>
+                <meta name="description" content="Checkout page of Your Website Name" />
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0" />
+            </Head>
             <div className="container  mx-auto w-[90%] min-h-screen">
 
                 <div className="flex flex-col">

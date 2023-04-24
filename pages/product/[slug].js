@@ -9,6 +9,7 @@ import Product from "@/models/Product"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Custom404 from '../404';
+import Head from 'next/head';
 
 export async function getServerSideProps(context) {
     let error = null;
@@ -102,7 +103,12 @@ const Post = ({ buyNow, addToCart, product, variants, error }) => {
 
     return (
         <div>
-            <section className="text-gray-600 body-font overflow-hidden">
+            <Head>
+                <title>{product.title} | DEVWEAR</title>
+                <meta name="description" content="Checkout page of Your Website Name" />
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0" />
+            </Head>
+            <section className="text-gray-600 body-font overflow-hidden min-h-screen">
                 <ToastContainer
                     position="bottom-center"
                     autoClose={3000}

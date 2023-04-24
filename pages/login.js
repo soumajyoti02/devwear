@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Router, useRouter } from 'next/router';
+import Head from 'next/head';
 
 const Login = () => {
     const router = useRouter()
@@ -77,6 +78,11 @@ const Login = () => {
 
     return (
         <div>
+            <Head>
+                <title>Login | DEVWEAR</title>
+                <meta name="description" content="Checkout page of Your Website Name" />
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0" />
+            </Head>
             <ToastContainer
                 position="bottom-left"
                 autoClose={3000}
@@ -89,7 +95,7 @@ const Login = () => {
                 pauseOnHover
                 theme="light"
             />
-            <div className="flex min-h-full items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+            <div className="flex md:min-h-[85vh] min-h-[60vh] items-center justify-center px-4 pb-12 sm:px-6 lg:px-8">
                 <div className="w-full max-w-md space-y-8">
                     <div>
                         <img className="mx-auto h-12 w-auto" src="/logo.png" alt="Your Company" />

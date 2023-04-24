@@ -5,6 +5,7 @@ import Image from 'next/image'
 import mongoose from "mongoose";
 import Product from "@/models/Product"
 import connectDb from "@/middleware/mongoose"
+import Head from 'next/head';
 
 export async function getServerSideProps(context) {
     if (!mongoose.connections[0].readyState) {
@@ -44,10 +45,15 @@ const Hoodies = ({ products }) => {
 
     return (
         <>
-            <section className="text-gray-600 body-font ">
+            <Head>
+                <title>Hoodies | DEVWEAR</title>
+                <meta name="description" content="Checkout page of Your Website Name" />
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0" />
+            </Head>
+            <section className="text-gray-600 body-font min-h-screen">
                 <div className="container w-[92%] px-5 py-24 mx-auto">
                     <div className="flex flex-wrap -m-4 justify-center">
-                        {Object.keys(products).length === 0 && <p>Sorry all the Hoodies are Currently Out of Stock. New Stock Coming Soon. Stay Tuned!</p>}
+                        {Object.keys(products).length === 0 && <p className='mx-5'>Sorry all the Hoodies are Currently Out of Stock. New Stock Coming Soon. Stay Tuned!</p>}
                         {Object.keys(products).map((item) => {
                             return <Link passHref={true} key={products[item]._id} href={`/product/${products[item].slug}`} className='lg:w-1/5 md:w-1/2 p-4 w-full shadow-lg m-5'>
                                 <div className="">

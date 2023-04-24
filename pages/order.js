@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 
 import mongoose from "mongoose";
 import Order from "@/models/Order"
+import Head from 'next/head';
 
 export async function getServerSideProps(context) {
     if (!mongoose.connections[0].readyState) {
@@ -39,6 +40,11 @@ const MyOrder = ({ order, clearCart }) => {
 
     return (
         <div>
+            <Head>
+                <title>Order Successful | DEVWEAR</title>
+                <meta name="description" content="Checkout page of Your Website Name" />
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0" />
+            </Head>
             <section className="text-gray-600 body-font overflow-hidden">
                 <div className="container px-5 py-24 mx-auto">
                     <div className="lg:w-4/5 mx-auto flex flex-wrap">
