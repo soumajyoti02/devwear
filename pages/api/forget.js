@@ -1,6 +1,5 @@
 import Forget from "@/models/Forget"
 import User from "@/models/User"
-import Product from "@/models/Product"
 import connectDb from "@/middleware/mongoose"
 import jsonwebtoken from "jsonwebtoken"
 
@@ -10,28 +9,30 @@ var jwt = require('jsonwebtoken');
 
 const handler = async (req, res) => {
     if (req.method = 'POST') {
-        // Check if the user exists in the database
 
-        //Send an email to the user
+        //Send an email to the user if sendMail = true i.e. user clicks on sendResetEmail button
         if (req.body.sendMail) {
 
-            let token = "1";
+            let token = "";
+
+            // Check if the user exists in the database
             let user = await User.findOne({ "email": req.body.email })
 
             if (user) {
                 if (req.body.email == user.email) {
+                    // Generate a token to use it as query to reset password
                     token = jwt.sign({ email: user.email, name: user.name }, process.env.JWT_SECRET, {
                         expiresIn: "2d"
                     });
                 }
-
+                // Created a forget entry inside Database
                 let forget = new Forget({
                     userid: user._id,
                     email: req.body.email,
                     token: token,
                 })
                 await forget.save()
-                console.log(token)
+                console.log(token) // To be removed. [PENDING]
 
 
                 let email = `We have sent you this email in response to your request to reset your password on Devwear.com
@@ -44,26 +45,41 @@ const handler = async (req, res) => {
             return
         }
 
+        //Reset the password if sendMail = fakse i.e. user clicks on resetPassword button
         else {
             // Reset User Password
+            // Find the user w.r.t. token entered in query. To check if user tempered the token of query or not.
             let userFromForget = await Forget.findOne({ "token": req.body.token })
+
+
             if (userFromForget) {
-                let token = userFromForget.token
+                // Extract token from userFromForget object
+                let token = userFromForget.token;
 
-                let user = jsonwebtoken.verify(token, process.env.JWT_SECRET)
-                let dbuser = await User.findOne({ email: user.email })
+                // Verify the token using the JWT_SECRET environment variable
+                let user = jsonwebtoken.verify(token, process.env.JWT_SECRET);
 
+                // Find user in database using the email from the token
+                let dbuser = await User.findOne({ email: user.email });
+
+                // Check if the new password and confirm password match
                 if (req.body.password == req.body.cpassword) {
-                    await User.findOneAndUpdate({ email: dbuser.email }, { password: CryptoJS.AES.encrypt(req.body.cpassword, process.env.AES_SECRET).toString() })
+                    // Encrypt the new password using the AES_SECRET environment variable
+                    await User.findOneAndUpdate(
+                        { email: dbuser.email },
+                        { password: CryptoJS.AES.encrypt(req.body.cpassword, process.env.AES_SECRET).toString() }
+                    );
 
-                    res.status(200).json({ success: true })
-                    return
-                }
-                else {
-                    res.status(400).json({ success: false, error: "Password Not Matched!" })
-                    return
+                    // Return a success response if the password was updated successfully
+                    res.status(200).json({ success: true });
+                    return;
+                } else {
+                    // Return an error response if the new password and confirm password do not match
+                    res.status(400).json({ success: false, error: "Password Not Matched!" });
+                    return;
                 }
             }
+
             else {
                 res.status(400).json({ success: false, error: "User not Found" })
                 return
@@ -72,7 +88,7 @@ const handler = async (req, res) => {
     }
 
     else {
-        res.status(400).json({ error: "This method is not allowed" })
+        res.status(400).json({ success: false, error: "This method is not allowed" })
     }
 }
 

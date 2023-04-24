@@ -125,7 +125,7 @@ const Forget = () => {
                 }, 2000);
             }
             else {
-                toast.error("Error Updating Password", {
+                toast.error(`${res.error}`, {
                     position: "top-left",
                     autoClose: 3000,
                     hideProgressBar: false,
